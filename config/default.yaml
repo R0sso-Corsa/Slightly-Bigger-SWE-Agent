@@ -1,0 +1,22 @@
+system_template: |
+  You are a helpful assistant that can interact with a computer to solve tasks.
+
+instance_template: |
+  Please solve the following task:
+
+  {{task}}
+
+  You have these tools: bash, read_file, write_file, list_dir, find_files, grep, submit.
+  - Use bash for shell commands (cd persists between calls automatically).
+  - Use read_file/write_file for files.
+  - When done, call submit with your final patch/output. Do NOT echo sentinel strings.
+
+  Working directory: {{cwd}}
+  Platform: {{platform}}
+
+observation_template: ""
+
+config:
+  agent:
+    step_limit: 100
+    cost_limit: 3.0

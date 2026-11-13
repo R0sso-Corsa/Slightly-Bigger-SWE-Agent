@@ -1,0 +1,13 @@
+.venv/
+mswe.egg-info/
+.mswe_spool/
+__pycache__/
+*.pyc
+
+# local notes / personal
+VAULT.md
+
+# local reference copy of upstream mini-swe-agent (not published)
+original/
+ORIGINAL_COMMIT.txt
+tests/

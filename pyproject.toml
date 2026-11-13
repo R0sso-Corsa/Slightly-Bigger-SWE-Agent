@@ -1,0 +1,32 @@
+[project]
+name = "mswe"
+version = "0.1.0"
+description = "Custom build of mini-swe-agent with compaction, spooling, guardrails, multi-tool support"
+requires-python = ">=3.10"
+dependencies = [
+  "litellm",
+  "pydantic",
+  "jinja2",
+  "typer",
+  "rich",
+  "pyyaml",
+  "prompt_toolkit",
+]
+
+[project.scripts]
+mswe = "mswe.cli:app"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["mswe*"]
+
+[tool.basedpyright]
+typeCheckingMode = "standard"
+venvPath = "."
+venv = ".venv"
+exclude = ["original", "mswe.egg-info", ".venv"]
+

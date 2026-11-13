@@ -3,21 +3,33 @@ name = "mswe"
 version = "0.1.0"
 description = "Custom build of mini-swe-agent with compaction, spooling, guardrails, multi-tool support"
 requires-python = ">=3.10"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 dependencies = [
   "litellm",
-  "pydantic",
+  "pydantic>=2",
   "jinja2",
   "typer",
   "rich",
   "pyyaml",
   "prompt_toolkit",
+  "python-dotenv",
+  "certifi",
 ]
+
+[project.urls]
+Repository = "https://github.com/R0sso-Corsa/Slightly-Bigger-SWE-Agent"
+Issues = "https://github.com/R0sso-Corsa/Slightly-Bigger-SWE-Agent/issues"
+
+[project.optional-dependencies]
+dev = ["build", "twine", "basedpyright"]
 
 [project.scripts]
 mswe = "mswe.cli:app"
 
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]

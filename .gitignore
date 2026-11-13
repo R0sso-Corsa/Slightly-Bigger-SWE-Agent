@@ -3,6 +3,14 @@ mswe.egg-info/
 .mswe_spool/
 __pycache__/
 *.pyc
+build/
+dist/
+wheel-check/
+
+# local secrets
+.env
+.env.*
+!.env.example
 
 # local notes / personal
 VAULT.md

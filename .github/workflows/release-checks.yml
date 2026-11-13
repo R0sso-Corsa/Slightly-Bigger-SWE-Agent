@@ -1,0 +1,33 @@
+name: Release checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test-and-package:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ['3.10', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m venv .venv
+      - run: .venv/bin/python -m pip install -e '.[dev]'
+      - run: .venv/bin/python -m unittest discover -v
+      - run: .venv/bin/basedpyright -p . --pythonversion ${{ matrix.python }}
+      - run: .venv/bin/python -m build
+      - run: .venv/bin/python -m twine check dist/*.whl dist/*.tar.gz
+      - run: |
+          python -m venv wheel-check
+          wheel-check/bin/python -m pip install dist/*.whl
+          cd "$RUNNER_TEMP"
+          "$GITHUB_WORKSPACE/wheel-check/bin/mswe" --help
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mswe-python-${{ matrix.python }}
+          path: dist/*

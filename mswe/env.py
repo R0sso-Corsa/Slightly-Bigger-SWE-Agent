@@ -61,10 +61,15 @@ class Environment:
         return self._run_bash(command)
 
     def _run_tool(self, tool, action):
-        fn = getattr(BUILTINS, tool, None)
+        allowed = {"read_file", "write_file", "list_dir", "find_files", "grep"}
+        fn = getattr(BUILTINS, tool, None) if tool in allowed else None
         if fn is None:
             return {"output": f"unknown tool: {tool}", "returncode": 1}
         args = {k: v for k, v in action.items() if k not in ("tool", "name")}
+        field = "root" if tool in {"find_files", "grep"} else "path"
+        if field in args or tool in {"list_dir", "find_files", "grep"}:
+            path = Path(args.get(field, ".")).expanduser()
+            args[field] = str(path if path.is_absolute() else Path(self.cwd) / path)
         try:
             res = fn(**args)
         except TypeError as e:
@@ -79,7 +84,7 @@ class Environment:
         marker = "__MSWE_CWD__"
         wrapped = command
         if self.config.stateful:
-            wrapped = f"{command}\nprintf '\\n{marker}%s\\n' \"$(pwd)\""
+            wrapped = f"{command}\n__mswe_status=$?; printf '\\n{marker}%s\\n' \"$(pwd)\"; exit \"$__mswe_status\""
         try:
             result = self._popen(wrapped, self.cwd, os.environ | self.config.env, self.config.timeout)
             stdout = result.stdout

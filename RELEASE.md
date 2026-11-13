@@ -1,7 +1,20 @@
 # 0.1.0 release candidate
 
-Status: prepared locally, not published. This is an experimental preview, not a
-sandboxed or production-hardened agent. Repository visibility remains private.
+Status: release candidate pushed for review; full release not published. Repository
+visibility remains private. This is an experimental preview, not a sandboxed or
+production-hardened agent.
+
+## Remote and live acceptance evidence
+
+- Code candidate `7682ceb` passed both Linux CI jobs (Python 3.10 and 3.13):
+  https://github.com/R0sso-Corsa/Slightly-Bigger-SWE-Agent/actions/runs/43463213010
+- The configured OpenRouter Inkling model was confirmed in the live catalog, but
+  authenticated chat returned HTTP 403: "This model is not available in your
+  region." Two bounded attempts failed before tool execution. This is a provider
+  availability restriction, not a successful end-to-end chat validation.
+- No alternative provider was used without approval. Live task/approval/follow-up
+  acceptance remains BLOCKED pending an authorized, available model. Catalog and
+  deterministic tests are not substitutes for this gate.
 
 ## Local acceptance
 
@@ -31,10 +44,10 @@ sandboxed or production-hardened agent. Repository visibility remains private.
 
 - [x] Prepare a local release-candidate branch and commit intended source/docs/tests only; do not stage `.env`, OAuth files,
   local VAULT.md, generated artifacts, or `backup/pre-github-sanitize`.
-- [ ] Push the reviewed commit to the existing private repo and verify remote SHA.
-- [ ] Observe GitHub Actions results for Python 3.10/3.13 on Linux. The workflow
-  is prepared locally; no remote CI result is claimed before it runs.
-- [ ] Manually accept a real configured-provider task in a disposable directory,
+- [x] Push the reviewed code candidate to the existing private repo and verify remote SHA.
+- [x] Observe successful GitHub Actions results for Python 3.10/3.13 on Linux for the code candidate.
+- [ ] Confirm CI for the final documentation/asset-target commit before publication.
+- [ ] BLOCKED: accept a real configured-provider task in a disposable directory,
   including interactive approvals and follow-up chat. Unit tests and catalog
   listing are not end-to-end authenticated model validation.
 - [ ] Approve release title/version/visibility; create a draft GitHub release

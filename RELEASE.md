@@ -12,9 +12,17 @@ production-hardened agent.
   authenticated chat returned HTTP 403: "This model is not available in your
   region." Two bounded attempts failed before tool execution. This is a provider
   availability restriction, not a successful end-to-end chat validation.
-- No alternative provider was used without approval. Live task/approval/follow-up
-  acceptance remains BLOCKED pending an authorized, available model. Catalog and
-  deterministic tests are not substitutes for this gate.
+- With explicit user approval, live acceptance then passed using the existing
+  ChatGPT OAuth login (`chatgpt/gpt-6.1-sol`), without changing the saved default:
+  three authenticated requests, one exact-command approval, real shell marker
+  output, successful submission and successful follow-up submission.
+- A separate installed-CLI check exercised the actual `input()` approval prompt
+  under a controlling PTY: one harmless approved command, submission and exit 0.
+  An earlier PTY harness failed because it lacked a controlling terminal; the
+  failure reproduced offline and passed with a proper controlling PTY. No app
+  source fix was needed. This does not claim the initial harness run passed.
+- These are bounded release smoke tests, not validation of every provider/model,
+  spending cap, arbitrary tool workflow or manual UI usability scenario.
 
 ## Local acceptance
 
@@ -47,15 +55,16 @@ production-hardened agent.
 - [x] Push the reviewed code candidate to the existing private repo and verify remote SHA.
 - [x] Observe successful GitHub Actions results for Python 3.10/3.13 on Linux for the code candidate.
 - [ ] Confirm CI for the final documentation/asset-target commit before publication.
-- [ ] BLOCKED: accept a real configured-provider task in a disposable directory,
-  including interactive approvals and follow-up chat. Unit tests and catalog
-  listing are not end-to-end authenticated model validation.
-- [ ] Approve release title/version/visibility; create a draft GitHub release
-  against the verified commit and attach wheel, sdist and SHA256SUMS.
-- [ ] Verify remote release metadata/assets and hashes before publishing.
+- [x] Pass bounded authenticated task/approval/follow-up checks using approved
+  ChatGPT credentials, plus an actual installed-CLI approval-prompt check.
+- [x] Create a draft v0.1.0 release with wheel, sdist and SHA256SUMS; keep private.
+- [ ] Refresh/verify remote assets against the final commit before publishing.
+- [ ] Obtain final approval to merge the PR and publish the release.
 
-No PyPI publishing, public-repo conversion, release tag or GitHub release is
-performed by the local preparation step. Do not push all branches.
+No PyPI publishing, public-repo conversion or full GitHub release publication has
+been authorized. Keep the release draft until final approval; do not push all
+branches. Use the PR checks and release metadata as the current evidence for
+final-commit CI and asset verification (avoids a self-referential docs rebuild).
 
 ## Known limits
 

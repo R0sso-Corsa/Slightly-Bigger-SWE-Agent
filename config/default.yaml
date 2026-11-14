@@ -16,7 +16,6 @@ instance_template: |
 
 observation_template: ""
 
-config:
-  agent:
-    step_limit: 100
-    cost_limit: 3.0
+agent:
+  step_limit: 100
+  cost_limit: 3.0

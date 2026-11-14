@@ -39,8 +39,8 @@ class Agent:
         self._start_time = time.time()
         self._cost_baseline = 0.0
         self._show = sys.stdin is not None and sys.stdin.isatty()
-        if not self._show:
-            self.config.yolo = True  # no terminal: don't prompt, just run
+        if not self._show and not self.config.yolo:
+            raise ValueError("Non-interactive execution requires explicit --yolo; use a disposable workspace.")
 
     def get_template_vars(self, **kwargs):
         return {

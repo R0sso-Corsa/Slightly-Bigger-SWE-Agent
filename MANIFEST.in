@@ -1,0 +1,10 @@
+include README.md LICENSE SECURITY.md CHANGELOG.md RELEASE.md .env.example test_*.py
+recursive-include config *.yaml
+prune original
+prune .venv
+prune dist
+prune build
+prune .mswe_spool
+exclude .env .env.* VAULT.md ORIGINAL_COMMIT.txt
+include .env.example
+global-exclude *.pyc __pycache__

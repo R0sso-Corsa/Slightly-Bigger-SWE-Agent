@@ -1,6 +1,6 @@
 [project]
 name = "sbswe"
-version = "0.1.0"
+version = "0.2.0"
 description = "Custom build of mini-swe-agent with compaction, spooling, guardrails, multi-tool support"
 requires-python = ">=3.10"
 readme = "README.md"

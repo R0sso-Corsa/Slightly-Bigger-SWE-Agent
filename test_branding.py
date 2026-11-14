@@ -5,6 +5,10 @@ import unittest
 
 
 class BrandingTests(unittest.TestCase):
+    def test_release_version(self):
+        from sbswe import __version__
+        self.assertEqual(__version__, '0.2.0')
+
     def test_package_and_cli_use_project_name(self):
         self.assertIsNotNone(importlib.util.find_spec('sbswe'))
         result = subprocess.run([sys.executable, '-m', 'sbswe', '--help'], capture_output=True, text=True)

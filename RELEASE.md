@@ -1,79 +1,58 @@
-# 0.1.0 release candidate
+# sbswe 0.2.0 release checks
 
-Status: release candidate pushed for review; full release not published. Repository
-visibility remains private. This is an experimental preview, not a sandboxed or
-production-hardened agent.
+This release packages the `sbswe` rename. It is an experimental local coding
+agent, not a sandboxed or production-hardened environment.
 
-## Remote and live acceptance evidence
+## What to verify
 
-- Code candidate `7682ceb` passed both Linux CI jobs (Python 3.10 and 3.13):
-  https://github.com/R0sso-Corsa/Slightly-Bigger-SWE-Agent/actions/runs/43463213010
-- The configured OpenRouter Inkling model was confirmed in the live catalog, but
-  authenticated chat returned HTTP 403: "This model is not available in your
-  region." Two bounded attempts failed before tool execution. This is a provider
-  availability restriction, not a successful end-to-end chat validation.
-- With explicit user approval, live acceptance then passed using the existing
-  ChatGPT OAuth login (`chatgpt/gpt-6.1-sol`), without changing the saved default:
-  three authenticated requests, one exact-command approval, real shell marker
-  output, successful submission and successful follow-up submission.
-- A separate installed-CLI check exercised the actual `input()` approval prompt
-  under a controlling PTY: one harmless approved command, submission and exit 0.
-  An earlier PTY harness failed because it lacked a controlling terminal; the
-  failure reproduced offline and passed with a proper controlling PTY. No app
-  source fix was needed. This does not claim the initial harness run passed.
-- These are bounded release smoke tests, not validation of every provider/model,
-  spending cap, arbitrary tool workflow or manual UI usability scenario.
+- Run the regression suite on Python 3.10 and 3.13, including the package name,
+  CLI branding and `0.2.0` version checks.
+- Run the typechecker and `git diff --check`.
+- Build the wheel and source archive, check their metadata, and install the wheel
+  with fresh dependencies outside the source checkout.
+- Exercise endpoint setup, key replacement, model selection, user config loading
+  and non-interactive approval refusal with temporary settings and dummy keys.
+- Check migration of saved endpoint settings and credential-variable references.
+  Compare key values privately; never include real keys in test output or Git.
+- Run a bounded authenticated test on the installed wheel, including an exact
+  harmless approved shell command, submission and follow-up. Use a controlling
+  PTY for the installed CLI's actual approval prompt.
+- Bind final CI results and downloaded release-asset hashes to the exact release
+  commit. Record the evidence in the release/PR notes rather than changing this
+  file after every check and invalidating the tested artifact.
 
-## Local acceptance
+## Public-release privacy check
 
-- 14 configuration/model-picker/runtime regression tests pass on macOS with
-  Python 3.13 and Python 3.10.21. Re-run `python -m unittest discover -v` after edits.
-- `basedpyright -p . --pythonversion 3.10` and `git diff --check` must pass.
-- `python -m build` produces a wheel and sdist; `python -m twine check dist/*.whl dist/*.tar.gz`
-  validates metadata. Install the wheel in a fresh virtualenv outside the checkout
-  and exercise `sbswe --help`, endpoint setup, key rotation and model selection.
-- Inspect BOTH archives for local env files, auth files, VAULT.md, personal paths,
-  upstream reference copies and known credential values. A pattern scan is not a
-  proof that arbitrary secrets cannot exist.
-- Keep upstream MIT notice in the repository and distributions.
+Before changing visibility, scan a mirror of all remote refs, both old and new
+release archives, and the material exposed by PRs/issues. The deliberately local
+backup branch, personal tracker, `.env`, OAuth files and diagnostic transcripts
+must remain outside the remote repository. Use a redacting secret scanner and a
+private known-credential-value check. These scans reduce risk; they are not a
+proof that every possible secret is absent.
 
-## Fixed during preparation
+Public visibility exposes existing history and releases too. Keep the original
+release artifacts unchanged, but inspect them before exposing them. Follow
+[SECURITY.md](SECURITY.md) for credential handling.
 
-- Saved non-OpenAI keys no longer inherit a generic OpenAI base URL.
-- Cross-provider model overrides cannot silently reuse a saved endpoint's key.
-- Endpoint-name punctuation uses collision-free environment-variable encoding.
-- Shell cwd tracking preserves command failure status.
-- Relative file tools follow the environment's cwd and shell cd, not the launcher.
-- Non-TTY execution requires explicit `--yolo`; interactive approval stays default.
-- Installed wheels use writable user env storage, not site-packages.
-- Removed implicit loading of another project's mini-swe-agent env file.
+## Earlier release evidence
 
-## Remaining gates before publication
+The original `v0.1.0` passed its Python 3.10/3.13 CI and bounded ChatGPT OAuth task,
+approval and follow-up checks. Its first OpenRouter Inkling attempts failed with a
+regional HTTP 403; that provider restriction was not fixed by changing software.
+An early CLI harness failed without a controlling terminal. It reproduced offline
+and passed when the harness used a controlling PTY, without an application fix.
 
-- [x] Prepare a local release-candidate branch and commit intended source/docs/tests only; do not stage `.env`, OAuth files,
-  local VAULT.md, generated artifacts, or `backup/pre-github-sanitize`.
-- [x] Push the reviewed code candidate to the existing private repo and verify remote SHA.
-- [x] Observe successful GitHub Actions results for Python 3.10/3.13 on Linux for the code candidate.
-- [ ] Confirm CI for the final documentation/asset-target commit before publication.
-- [x] Pass bounded authenticated task/approval/follow-up checks using approved
-  ChatGPT credentials, plus an actual installed-CLI approval-prompt check.
-- [x] Create a draft v0.1.0 release with wheel, sdist and SHA256SUMS; keep private.
-- [ ] Refresh/verify remote assets against the final commit before publishing.
-- [ ] Obtain final approval to merge the PR and publish the release.
+Those results describe the original release. They do not replace testing the
+renamed 0.2.0 package. See [MIGRATION.md](MIGRATION.md) and [CHANGELOG.md](CHANGELOG.md).
 
-No PyPI publishing, public-repo conversion or full GitHub release publication has
-been authorized. Keep the release draft until final approval; do not push all
-branches. Use the PR checks and release metadata as the current evidence for
-final-commit CI and asset verification (avoids a self-referential docs rebuild).
+## Limits
 
-## Known limits
+The agent runs with your account's access and child commands inherit environment
+variables. Logs, spooled output and saved trajectories are not automatically
+redacted. Unknown provider pricing can report zero; use provider spending limits
+and finite step limits. Browser OAuth setup, OAuth catalog discovery, MCP/ACP,
+and richer cancellation remain outside this release.
 
-See SECURITY.md. Guardrails are not a sandbox; child commands inherit the parent
-account/environment. Logs/trajectories/tool output are not automatically redacted.
-Unknown provider costs can report zero. Keep provider-side spending limits and a
-finite step limit. OAuth browser setup and OAuth catalog discovery are not
-implemented. Model catalogs can list models unavailable to your account.
-
-Dependencies are currently version-ranged/unpinned; a fresh install is tested,
-not a guarantee of all future dependency resolutions. macOS local checks and a
-prepared Linux CI matrix are not a Windows support claim.
+macOS and Linux checks do not establish Windows support. Dependencies are not
+fully pinned, so a successful fresh installation does not cover every future
+resolution. No PyPI publication is part of this GitHub release.

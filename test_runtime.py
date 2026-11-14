@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from mswe.env import Environment
+from sbswe.env import Environment
 
 
 class RuntimeTests(unittest.TestCase):
@@ -19,7 +19,7 @@ class RuntimeTests(unittest.TestCase):
             self.assertIn('example.txt', env.execute({'tool': 'list_dir'})['output'])
 
     def test_noninteractive_agent_requires_explicit_yolo(self):
-        from mswe.agent import Agent
+        from sbswe.agent import Agent
         from unittest.mock import patch, Mock
         with patch('sys.stdin.isatty', return_value=False):
             with self.assertRaisesRegex(ValueError, '--yolo'):

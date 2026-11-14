@@ -2,7 +2,7 @@
 
 ## 0.1.0 — release candidate (unpublished)
 
-First experimental release candidate of Slightly-Bigger-SWE-Agent (`mswe`).
+First experimental release candidate of Slightly-Bigger-SWE-Agent (`sbswe`).
 
 - Local coding loop, structured submission, file tools, stateful shell directory,
   character-budget history compaction and large-output spooling.

@@ -31,7 +31,7 @@ production-hardened agent.
 - `basedpyright -p . --pythonversion 3.10` and `git diff --check` must pass.
 - `python -m build` produces a wheel and sdist; `python -m twine check dist/*.whl dist/*.tar.gz`
   validates metadata. Install the wheel in a fresh virtualenv outside the checkout
-  and exercise `mswe --help`, endpoint setup, key rotation and model selection.
+  and exercise `sbswe --help`, endpoint setup, key rotation and model selection.
 - Inspect BOTH archives for local env files, auth files, VAULT.md, personal paths,
   upstream reference copies and known credential values. A pattern scan is not a
   proof that arbitrary secrets cannot exist.

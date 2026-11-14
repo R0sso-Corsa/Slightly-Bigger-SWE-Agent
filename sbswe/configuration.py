@@ -70,7 +70,7 @@ def configure(config_path: Path, env_path: Path, reauth: bool = False):
         if base:
             endpoint['api_base'] = base
     key = typer.prompt('API key (blank to keep existing / no key)', default='', hide_input=True, show_default=False)
-    variable = 'MSWE_ENDPOINT_' + name.upper().replace('_', '_5F').replace('-', '_2D') + '_API_KEY'
+    variable = 'SBSWE_ENDPOINT_' + name.upper().replace('_', '_5F').replace('-', '_2D') + '_API_KEY'
     if key:
         if any(c in key for c in '\r\n\x00'):
             raise typer.BadParameter('API key must be a single line.')
@@ -90,7 +90,7 @@ def configure(config_path: Path, env_path: Path, reauth: bool = False):
     data['active_endpoint'] = name
     data['model'] = dict(endpoint)
     save_config(config_path, data)
-    typer.echo(f'Saved endpoint {name}. Restart mswe to use it. Keys are stored only in {env_path}.')
+    typer.echo(f'Saved endpoint {name}. Restart sbswe to use it. Keys are stored only in {env_path}.')
 
 
 def fetch_models(endpoint):
@@ -98,7 +98,7 @@ def fetch_models(endpoint):
     import ssl
     import certifi
     from urllib.request import Request, HTTPRedirectHandler, HTTPSHandler, build_opener
-    from mswe.cli import _expand_env
+    from sbswe.cli import _expand_env
 
     provider = endpoint['model_name'].split('/', 1)[0]
     defaults = {'openrouter': 'https://openrouter.ai/api/v1',

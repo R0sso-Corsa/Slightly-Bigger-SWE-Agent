@@ -6,9 +6,9 @@ import subprocess
 from pathlib import Path
 from pydantic import BaseModel
 
-from mswe.exceptions import Submitted
+from sbswe.exceptions import Submitted
 try:
-    from mswe import tools as BUILTINS
+    from sbswe import tools as BUILTINS
 except Exception:
     import tools as BUILTINS
 
@@ -36,7 +36,7 @@ class Environment:
         self.config = config_class(**kwargs)
         self.cwd = self.config.cwd or os.getcwd()
         self._counter = 0
-        self._spool = Path(self.config.spool_dir or (Path.cwd() / ".mswe_spool"))
+        self._spool = Path(self.config.spool_dir or (Path.cwd() / ".sbswe_spool"))
         self._spool.mkdir(parents=True, exist_ok=True)
         self._deny = [re.compile(p) for p in (DEFAULT_DENY + self.config.deny)]
 
@@ -81,10 +81,10 @@ class Environment:
 
     def _run_bash(self, command):
         # stateful cwd tracking: append marker to capture final cwd
-        marker = "__MSWE_CWD__"
+        marker = "__SBSWE_CWD__"
         wrapped = command
         if self.config.stateful:
-            wrapped = f"{command}\n__mswe_status=$?; printf '\\n{marker}%s\\n' \"$(pwd)\"; exit \"$__mswe_status\""
+            wrapped = f"{command}\n__sbswe_status=$?; printf '\\n{marker}%s\\n' \"$(pwd)\"; exit \"$__sbswe_status\""
         try:
             result = self._popen(wrapped, self.cwd, os.environ | self.config.env, self.config.timeout)
             stdout = result.stdout
@@ -165,4 +165,4 @@ class Environment:
         return {"cwd": self.cwd, "platform": platform.platform(), **kwargs}
 
     def serialize(self):
-        return {"info": {"config": {"environment": self.config.model_dump(mode="json"), "environment_type": "mswe.Environment"}}}
+        return {"info": {"config": {"environment": self.config.model_dump(mode="json"), "environment_type": "sbswe.Environment"}}}

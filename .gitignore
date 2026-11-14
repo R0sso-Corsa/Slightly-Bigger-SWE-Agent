@@ -1,6 +1,6 @@
 .venv/
-mswe.egg-info/
-.mswe_spool/
+sbswe.egg-info/
+.sbswe_spool/
 __pycache__/
 *.pyc
 build/

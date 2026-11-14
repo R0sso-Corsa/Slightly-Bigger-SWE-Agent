@@ -1,4 +1,4 @@
-# Slightly-Bigger-SWE-Agent (mswe)
+# Slightly-Bigger-SWE-Agent (sbswe)
 
 **Experimental 0.1.0 release candidate.** See [security boundaries](SECURITY.md) before running model-generated commands.
 
@@ -6,7 +6,7 @@ A custom build of [mini-swe-agent](https://github.com/SWE-agent/mini-swe-agent) 
 
 ## Layout
 ```
-mswe/                # Python package: agent.py, model.py, env.py, tools.py, cli.py
+sbswe/                # Python package: agent.py, model.py, env.py, tools.py, cli.py
 config/              # default.yaml templates
 pyproject.toml
 ```
@@ -16,18 +16,18 @@ pyproject.toml
 python3 -m venv .venv
 .venv/bin/pip install -e .
 source .venv/bin/activate
-mswe --configure
+sbswe --configure
 ```
 
 Requires Python 3.10+ on macOS/Linux (POSIX shell); Windows is not release-verified.
-To install a downloaded wheel, use `python -m pip install ./mswe-0.1.0-py3-none-any.whl`.
+To install a downloaded wheel, use `python -m pip install ./sbswe-0.1.0-py3-none-any.whl`.
 
 ## Run
 ```
-mswe --task "Fix the bug in foo.py" --cwd /path/to/repo --step-limit 20
+sbswe --task "Fix the bug in foo.py" --cwd /path/to/repo --step-limit 20
 ```
 
-or via `python -m mswe ...`.
+or via `python -m sbswe ...`.
 
 Colored output: red = assistant, green = user, cyan = tool, magenta = exit, plus a rule between turns.
 
@@ -35,9 +35,9 @@ Colored output: red = assistant, green = user, cyan = tool, magenta = exit, plus
 YAML config via `-c file.yaml` (`system_template`, `instance_template`, `agent.*`, `environment.*`, `model.*`). See `config/default.yaml`.
 
 ## Provider
-Model is selected per run with `-m <provider/model>`, or `--base-url`/`--api-key` (or `MSWE_MODEL` / `MSWE_REASONING_EFFORT`) for any OpenAI-compatible endpoint. Keys are read from flags or environment variables — nothing is stored in the repo.
+Model is selected per run with `-m <provider/model>`, or `--base-url`/`--api-key` (or `SBSWE_MODEL` / `SBSWE_REASONING_EFFORT`) for any OpenAI-compatible endpoint. Keys are read from flags or environment variables — nothing is stored in the repo.
 
-You can also set a personal default in `~/.config/mswe/config.yaml`:
+You can also set a personal default in `~/.config/sbswe/config.yaml`:
 
 ```yaml
 model:
@@ -48,13 +48,13 @@ model:
 ## Pick a default model without starting chat
 
 ```bash
-python -m mswe --models
+python -m sbswe --models
 ```
 
 Choose a saved endpoint by number, search its live model catalog (blank shows
 all), then select a model by number. The picker saves the selection to your user
 config and activates that endpoint without changing its key. The next chat uses
-it unless overridden by `-m`, `MSWE_MODEL`, or `-c`.
+it unless overridden by `-m`, `SBSWE_MODEL`, or `-c`.
 
 Model discovery supports OpenRouter, OpenAI, Anthropic, Groq, DeepSeek, Mistral,
 and custom endpoints exposing the OpenAI-compatible `/models` format. Unsupported
@@ -65,8 +65,8 @@ leave your configuration unchanged. Run `--configure` first if no endpoint exist
 ## Endpoint setup (no manual file editing)
 
 ```bash
-python -m mswe --configure  # add, edit or switch a named endpoint
-python -m mswe --reauth     # replace a saved endpoint's API key
+python -m sbswe --configure  # add, edit or switch a named endpoint
+python -m sbswe --reauth     # replace a saved endpoint's API key
 ```
 
 Setup asks for the LiteLLM `provider/model` and optional HTTP(S) base URL first.
@@ -78,11 +78,11 @@ confirmation. API key input is hidden; blank keeps the saved key or uses no key.
 `--reauth` automatically uses the saved active endpoint; if none is available it
 asks for the endpoint name. Detection is local and makes no network requests.
 
-Settings are stored in `~/.config/mswe/config.yaml` under `endpoints`, with the
+Settings are stored in `~/.config/sbswe/config.yaml` under `endpoints`, with the
 selected entry copied into `model`. Editable checkouts store keys in their gitignored
-`.env`; wheel installs use `~/.config/mswe/.env` (or `$XDG_CONFIG_HOME/mswe/.env`).
+`.env`; wheel installs use `~/.config/sbswe/.env` (or `$XDG_CONFIG_HOME/sbswe/.env`).
 Keys use endpoint-specific variable names and owner-only permissions (0600).
-YAML contains `${MSWE_ENDPOINT_..._API_KEY}` references, never the entered key.
+YAML contains `${SBSWE_ENDPOINT_..._API_KEY}` references, never the entered key.
 Explicit endpoint keys/base URLs override generic `OPENAI_*` defaults, preventing
 an unrelated OpenAI key from overriding the selected provider's credentials.
 CLI flags still override endpoint values. Restart chat after setup.
@@ -100,8 +100,8 @@ $EDITOR .env
 ```
 
 `.env` is gitignored and loaded automatically. Shell variables take precedence,
-followed by the editable checkout `.env`, then the mswe user `.env`. The old
-mini-swe-agent `.env` is no longer read automatically; put keys in mswe's own env
+followed by the editable checkout `.env`, then the sbswe user `.env`. The old
+mini-swe-agent `.env` is no longer read automatically; put keys in sbswe's own env
 file or run `--configure`. YAML configs also expand `${VAR}` and `$VAR`, so this works in user or project configs:
 
 ```yaml
@@ -112,11 +112,11 @@ model:
 
 Never put real keys in `.env.example`, README files, shell history, or git.
 
-Model-name precedence: CLI flags > `MSWE_MODEL` > `-c file.yaml` > user config > built-in fallback. Endpoint-specific key/base references override generic `OPENAI_*` defaults; CLI flags override endpoint values. Keep API keys out of YAML unless they are `${VAR}` references; use `.env` or environment variables.
+Model-name precedence: CLI flags > `SBSWE_MODEL` > `-c file.yaml` > user config > built-in fallback. Endpoint-specific key/base references override generic `OPENAI_*` defaults; CLI flags override endpoint values. Keep API keys out of YAML unless they are `${VAR}` references; use `.env` or environment variables.
 
 ## What this build changes vs mini-swe-agent
 - Compaction: char-budget rolling compaction of older turns into a summary message
-- Output spooling: large outputs saved to `.mswe_spool/` with head+tail+path
+- Output spooling: large outputs saved to `.sbswe_spool/` with head+tail+path
 - Stateful cwd tracking across tool calls
 - Guardrails: deny-pattern list (rm -rf /, fork bomb, mkfs, dd to /dev)
 - Multi-tool: `bash`, `read_file`, `write_file`, `list_dir`, `find_files`, `grep`, `submit`

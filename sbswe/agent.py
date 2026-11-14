@@ -7,7 +7,7 @@ from pathlib import Path
 from jinja2 import StrictUndefined, Template
 from pydantic import BaseModel
 
-from mswe.exceptions import InterruptAgentFlow, LimitsExceeded, Submitted, TimeExceeded
+from sbswe.exceptions import InterruptAgentFlow, LimitsExceeded, Submitted, TimeExceeded
 
 
 class AgentConfig(BaseModel):
@@ -70,7 +70,7 @@ class Agent:
                 if isinstance(content, list):
                     content = " ".join(c.get("text", "") for c in content)
                 if role == "assistant":
-                    console.print(f"\n[red][bold]mswe[/bold] (step [bold]{self.n_calls}[/bold], [bold]${self.cost:.2f}[/bold]):[/red]")
+                    console.print(f"\n[red][bold]sbswe[/bold] (step [bold]{self.n_calls}[/bold], [bold]${self.cost:.2f}[/bold]):[/red]")
                 elif role == "exit":
                     console.print("\n[magenta][bold]done[/bold][/magenta]")
                 else:
@@ -227,10 +227,10 @@ class Agent:
         return {
             "info": {
                 "model_stats": {"instance_cost": self.cost, "api_calls": self.n_calls},
-                "config": {"agent": self.config.model_dump(mode="json"), "agent_type": "mswe.Agent"},
+                "config": {"agent": self.config.model_dump(mode="json"), "agent_type": "sbswe.Agent"},
                 "exit_status": (self.messages[-1].get("extra", {}).get("exit_status", "") if self.messages else ""),
                 "submission": (self.messages[-1].get("extra", {}).get("submission", "") if self.messages else ""),
             },
             "messages": self.messages,
-            "trajectory_format": "mswe-0.1",
+            "trajectory_format": "sbswe-0.1",
         }

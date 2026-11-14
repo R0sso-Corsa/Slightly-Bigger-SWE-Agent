@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-USER_CONFIG_PATH = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "mswe" / "config.yaml"
+USER_CONFIG_PATH = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "sbswe" / "config.yaml"
 
 
 def env_file_path():
@@ -35,11 +35,11 @@ import typer
 import yaml
 from rich.console import Console
 
-from mswe.agent import Agent
-from mswe.env import Environment
-from mswe.model import Model
+from sbswe.agent import Agent
+from sbswe.env import Environment
+from sbswe.model import Model
 
-app = typer.Typer(help="mswe - custom mini-swe-agent build")
+app = typer.Typer(help="sbswe - custom mini-swe-agent build")
 console = Console()
 
 DEFAULT_MODEL = "chatgpt/gpt-6.1-sol"
@@ -50,7 +50,7 @@ def prompt_task():
     from prompt_toolkit.history import FileHistory
 
     console.print("What do you want to do?")
-    session = PromptSession(history=FileHistory(str(Path.home() / ".mswe_history")), multiline=True)
+    session = PromptSession(history=FileHistory(str(Path.home() / ".sbswe_history")), multiline=True)
     try:
         console.print("[dim](Esc then Enter submits; Ctrl+C cancels)[/dim]")
         return session.prompt("", multiline=True).strip()
@@ -126,11 +126,11 @@ def run(
     reauth: bool = typer.Option(False, "--reauth", is_flag=True, help="Replace a saved endpoint API key (not OAuth)"),
 ):
     if models:
-        from mswe.configuration import pick_model
+        from sbswe.configuration import pick_model
         pick_model(USER_CONFIG_PATH)
         return
     if configure or reauth:
-        from mswe.configuration import configure as configure_endpoint
+        from sbswe.configuration import configure as configure_endpoint
         configure_endpoint(USER_CONFIG_PATH, env_file_path(), reauth=reauth)
         return
     interactive = not task or not task.strip()
@@ -145,7 +145,7 @@ def run(
     if model:
         mname = model
     else:
-        mname = os.environ.get("MSWE_MODEL") or cfg.get("model", {}).get("model_name") or DEFAULT_MODEL
+        mname = os.environ.get("SBSWE_MODEL") or cfg.get("model", {}).get("model_name") or DEFAULT_MODEL
     saved_provider = selected.get("model_name", "").split("/", 1)[0]
     changed_provider = saved_provider and mname.split("/", 1)[0] != saved_provider
     if changed_provider and selected_key and not api_key:
@@ -172,7 +172,7 @@ def run(
         elif mname.startswith("openai/") and os.environ.get("OPENAI_API_KEY"):
             model_cfg["model_kwargs"].setdefault("api_key", os.environ["OPENAI_API_KEY"])
     if mname.startswith("chatgpt/"):
-        model_cfg["model_kwargs"].setdefault("reasoning_effort", os.environ.get("MSWE_REASONING_EFFORT") or cfg.get("model", {}).get("reasoning_effort") or "low")
+        model_cfg["model_kwargs"].setdefault("reasoning_effort", os.environ.get("SBSWE_REASONING_EFFORT") or cfg.get("model", {}).get("reasoning_effort") or "low")
     model_cfg["tools"] = [t.strip() for t in tools.split(",") if t.strip()]
     m = Model(**model_cfg)
     agent_cfg = cfg.get("agent", {}) or {}

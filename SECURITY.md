@@ -1,6 +1,6 @@
 # Security and release scope
 
-mswe is an experimental local coding agent, **not a sandbox**. Shell commands and
+sbswe is an experimental local coding agent, **not a sandbox**. Shell commands and
 file tools run with your account's access. Deny patterns are convenience checks,
 not a security boundary. Use a disposable checkout/container and least-privileged
 credentials. Do not point it at untrusted instructions or sensitive directories.

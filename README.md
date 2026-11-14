@@ -32,7 +32,12 @@ python -m pip install -e .
 sbswe --configure
 ```
 
-The repository is private, so you need access to clone it.
+You can also install the wheel from [GitHub Releases](https://github.com/R0sso-Corsa/Slightly-Bigger-SWE-Agent/releases) in a virtual environment:
+
+```bash
+python -m pip install ./sbswe-0.2.0-py3-none-any.whl
+sbswe --configure
+```
 
 The wizard asks for a `provider/model` identifier, an optional base URL and an API key. It tries to name the endpoint automatically. If it cannot identify a custom endpoint, it asks you for a name. To choose your default model:
 
@@ -189,7 +194,7 @@ config/             Example YAML templates
 
 ## Releases and naming
 
-The current package and command are named `sbswe`. The first published release, `v0.1.0`, came before the rename, so its downloads still use the original name. Install from `main` using the instructions above to get the renamed command. Downloads with the new name will need a subsequent release.
+Version `v0.2.0` uses the `sbswe` package and command. The original `v0.1.0` downloads predate the rename and remain unchanged. See [MIGRATION.md](MIGRATION.md) if you have an older installation.
 
 [Release downloads](https://github.com/R0sso-Corsa/Slightly-Bigger-SWE-Agent/releases) · [Changelog](CHANGELOG.md)
 

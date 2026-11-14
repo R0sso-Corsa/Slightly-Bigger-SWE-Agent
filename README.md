@@ -1,123 +1,198 @@
-# Slightly-Bigger-SWE-Agent (sbswe)
+# sbswe · Slightly Bigger SWE Agent
 
-**Experimental 0.1.0 release candidate.** See [security boundaries](SECURITY.md) before running model-generated commands.
+A small, terminal-first coding agent built on [mini-swe-agent](https://github.com/SWE-agent/mini-swe-agent). Configure a provider, pick a model, and work on a local repository—with explicit tool approval, compacted history, and retrievable command output.
 
-A custom build of [mini-swe-agent](https://github.com/SWE-agent/mini-swe-agent) with compaction, output spooling, guardrails, and multi-tool support — still a ~200-line core loop with YAML/Jinja2 config.
+[Getting started](#getting-started) · [Commands](#commands) · [Providers](#providers-and-models) · [Security](SECURITY.md) · [Releases](https://github.com/R0sso-Corsa/Slightly-Bigger-SWE-Agent/releases)
 
-## Layout
-```
-sbswe/                # Python package: agent.py, model.py, env.py, tools.py, cli.py
-config/              # default.yaml templates
-pyproject.toml
-```
+> **Experimental. Not a sandbox.** Model-generated commands run with your account's access. Use disposable workspaces and least-privileged credentials. Read [SECURITY.md](SECURITY.md) before running tasks.
 
-## Install
-```
+## What it adds
+
+| Feature | What it does |
+| --- | --- |
+| **Provider setup** | Add or switch named endpoints through a CLI wizard; key entry is hidden. |
+| **Model picker** | Search a provider's live catalog and save a default without starting a chat. |
+| **History compaction** | Condense older message content when a character budget is exceeded. |
+| **Output spooling** | Save large tool output to `.sbswe_spool/`, with a head/tail preview and retrieval path. |
+| **Working-directory tracking** | Carry the shell's current directory into subsequent commands and relative file-tool paths. |
+| **File tools** | Read, write, list, find and search files alongside the primary shell tool. |
+| **Structured submission** | Finish through a `submit` tool rather than relying only on text markers. |
+| **Approval and guardrails** | Ask before interactive actions and block a small set of dangerous command patterns—not a security boundary. |
+
+## Getting started
+
+Requires **Python 3.10+** and a POSIX shell. Tested locally on macOS and in Linux CI; Windows is not release-verified.
+
+```bash
+git clone https://github.com/R0sso-Corsa/Slightly-Bigger-SWE-Agent.git sbswe
+cd sbswe
 python3 -m venv .venv
-.venv/bin/pip install -e .
 source .venv/bin/activate
+python -m pip install -e .
 sbswe --configure
 ```
 
-Requires Python 3.10+ on macOS/Linux (POSIX shell); Windows is not release-verified.
-To install a downloaded wheel, use `python -m pip install ./sbswe-0.1.0-py3-none-any.whl`.
+Repository access requires authorization while the project is private.
 
-## Run
+The setup wizard asks for a `provider/model` identifier, an optional base URL, and an API key. It infers a saved endpoint name where possible; custom endpoints fall back to manual naming. Then choose your default model:
+
+```bash
+sbswe --models
 ```
-sbswe --task "Fix the bug in foo.py" --cwd /path/to/repo --step-limit 20
+
+Start an interactive conversation:
+
+```bash
+sbswe --cwd /path/to/your/repo
 ```
 
-or via `python -m sbswe ...`.
+The task prompt is multiline: **Esc, then Enter** submits; **Ctrl+C** cancels. Tool actions ask for approval by default. Follow-up tasks keep the conversation context.
 
-Colored output: red = assistant, green = user, cyan = tool, magenta = exit, plus a rule between turns.
+### Run a single task
 
-## Config
-YAML config via `-c file.yaml` (`system_template`, `instance_template`, `agent.*`, `environment.*`, `model.*`). See `config/default.yaml`.
+```bash
+sbswe --task "Find and fix the failing test" \
+  --cwd /path/to/your/repo \
+  --step-limit 20
+```
 
-## Provider
-Model is selected per run with `-m <provider/model>`, or `--base-url`/`--api-key` (or `SBSWE_MODEL` / `SBSWE_REASONING_EFFORT`) for any OpenAI-compatible endpoint. Keys are read from flags or environment variables — nothing is stored in the repo.
+Non-interactive execution—such as redirected input or automation—requires explicit `--yolo`, which skips approvals:
 
-You can also set a personal default in `~/.config/sbswe/config.yaml`:
+```bash
+sbswe --task "Run the test suite and report failures" \
+  --cwd /path/to/disposable-checkout \
+  --step-limit 10 \
+  --yolo
+```
+
+## Commands
+
+| Command / option | Purpose |
+| --- | --- |
+| `sbswe` | Start an interactive task prompt. |
+| `sbswe --configure` | Add, edit or activate a saved endpoint. |
+| `sbswe --models` | Select an endpoint, search its models, and save a default. |
+| `sbswe --reauth` | Replace the active endpoint's API key using hidden input. |
+| `-m provider/model` | Override the model for one run. |
+| `-c file.yaml` | Layer an explicit YAML config over user defaults. |
+| `--cwd PATH` | Set the task's working directory. |
+| `--tools bash,submit` | Choose enabled tools; these two are the default. |
+| `--step-limit N` | Limit model calls per task/turn. |
+| `--cost-limit AMOUNT` | Apply a best-effort model-cost limit. |
+| `-o trajectory.json` | Save the task trajectory; treat it as sensitive. |
+| `--help` | Show all options. |
+
+`python -m sbswe` is equivalent to the `sbswe` command.
+
+To enable the file tools:
+
+```bash
+sbswe --tools bash,read_file,write_file,list_dir,find_files,grep,submit
+```
+
+## Providers and models
+
+sbswe uses **LiteLLM** to route requests. The model identifier includes the provider route; for example, an OpenRouter catalog ID becomes `openrouter/<catalog-model-id>`. A publisher name alone is not necessarily a provider route. `--configure` does not validate credentials or make a completion request.
+
+### Pick a model without starting chat
+
+```bash
+sbswe --models
+```
+
+1. Choose a saved endpoint by number.
+2. Enter a search term, or leave it blank to list all returned models.
+3. Select a model by number.
+
+The selection becomes your default for the next chat. Discovery supports OpenRouter, OpenAI, Anthropic, Groq, DeepSeek, Mistral, and custom endpoints exposing the OpenAI-compatible `/models` response format. Unsupported or unavailable catalogs offer manual entry.
+
+Catalog availability does not guarantee account access or regional availability. Existing ChatGPT OAuth credentials can be used by the `chatgpt/` route; browser login and OAuth catalog discovery are not implemented by the setup wizard. **`--reauth` rotates API keys; it is not OAuth reauthentication.**
+
+### Settings and credentials
+
+| Location | Contents |
+| --- | --- |
+| `~/.config/sbswe/config.yaml` | User defaults, named endpoints, and the selected model. |
+| Checkout `.env` | Keys for an editable source install; gitignored. |
+| `~/.config/sbswe/.env` | Keys for an installed wheel. |
+| `.env.example` | Commit-safe placeholders for supported credential variables. |
+
+`XDG_CONFIG_HOME` overrides the `~/.config` base directory. Wizard-written key files use owner-only permissions (`0600`); YAML stores `${SBSWE_ENDPOINT_..._API_KEY}` references rather than entered key values.
+
+For manual configuration, YAML values support `${VAR}` and `$VAR` references:
 
 ```yaml
 model:
-  model_name: chatgpt/gpt-6.1-sol
-  reasoning_effort: low
-```
-
-## Pick a default model without starting chat
-
-```bash
-python -m sbswe --models
-```
-
-Choose a saved endpoint by number, search its live model catalog (blank shows
-all), then select a model by number. The picker saves the selection to your user
-config and activates that endpoint without changing its key. The next chat uses
-it unless overridden by `-m`, `SBSWE_MODEL`, or `-c`.
-
-Model discovery supports OpenRouter, OpenAI, Anthropic, Groq, DeepSeek, Mistral,
-and custom endpoints exposing the OpenAI-compatible `/models` format. Unsupported
-or unavailable catalogs fall back to manual `provider/model` entry. It only lists
-models; it makes no completion requests. Cancel with Ctrl+C before selection to
-leave your configuration unchanged. Run `--configure` first if no endpoint exists.
-
-## Endpoint setup (no manual file editing)
-
-```bash
-python -m sbswe --configure  # add, edit or switch a named endpoint
-python -m sbswe --reauth     # replace a saved endpoint's API key
-```
-
-Setup asks for the LiteLLM `provider/model` and optional HTTP(S) base URL first.
-It automatically names known endpoints from their exact hostname (for example,
-`openrouter.ai` → `openrouter`), or from a recognized provider prefix when no URL
-is supplied. An exact saved model/URL match reuses its saved name. Unknown/custom
-servers prompt for a name instead. Updating an existing endpoint requires
-confirmation. API key input is hidden; blank keeps the saved key or uses no key.
-`--reauth` automatically uses the saved active endpoint; if none is available it
-asks for the endpoint name. Detection is local and makes no network requests.
-
-Settings are stored in `~/.config/sbswe/config.yaml` under `endpoints`, with the
-selected entry copied into `model`. Editable checkouts store keys in their gitignored
-`.env`; wheel installs use `~/.config/sbswe/.env` (or `$XDG_CONFIG_HOME/sbswe/.env`).
-Keys use endpoint-specific variable names and owner-only permissions (0600).
-YAML contains `${SBSWE_ENDPOINT_..._API_KEY}` references, never the entered key.
-Explicit endpoint keys/base URLs override generic `OPENAI_*` defaults, preventing
-an unrelated OpenAI key from overriding the selected provider's credentials.
-CLI flags still override endpoint values. Restart chat after setup.
-
-This is API-key setup/rotation, **not browser OAuth reauthentication**. It does not
-validate credentials against a live provider or make a paid test request. Blank
-keys allow existing provider auth or local servers to be used.
-
-## Project `.env`
-For provider keys specific to this project, copy `.env.example` to `.env` and fill in only the providers you use:
-
-```bash
-cp .env.example .env
-$EDITOR .env
-```
-
-`.env` is gitignored and loaded automatically. Shell variables take precedence,
-followed by the editable checkout `.env`, then the sbswe user `.env`. The old
-mini-swe-agent `.env` is no longer read automatically; put keys in sbswe's own env
-file or run `--configure`. YAML configs also expand `${VAR}` and `$VAR`, so this works in user or project configs:
-
-```yaml
-model:
-  model_name: openrouter/thinkingmachines/inkling-2-small:free
+  model_name: openrouter/<catalog-model-id>
   api_key: ${OPENROUTER_API_KEY}
 ```
 
-Never put real keys in `.env.example`, README files, shell history, or git.
+Put the key in `.env`, not in the YAML:
 
-Model-name precedence: CLI flags > `SBSWE_MODEL` > `-c file.yaml` > user config > built-in fallback. Endpoint-specific key/base references override generic `OPENAI_*` defaults; CLI flags override endpoint values. Keep API keys out of YAML unless they are `${VAR}` references; use `.env` or environment variables.
+```bash
+cp -n .env.example .env
+# Edit .env locally; never commit it.
+```
 
-## What this build changes vs mini-swe-agent
-- Compaction: char-budget rolling compaction of older turns into a summary message
-- Output spooling: large outputs saved to `.sbswe_spool/` with head+tail+path
-- Stateful cwd tracking across tool calls
-- Guardrails: deny-pattern list (rm -rf /, fork bomb, mkfs, dd to /dev)
-- Multi-tool: `bash`, `read_file`, `write_file`, `list_dir`, `find_files`, `grep`, `submit`
-- Structured submit tool instead of stdout sentinel
+Shell variables take precedence over the editable checkout `.env`, then the user `.env`. Model-name precedence is:
+
+```text
+CLI -m > SBSWE_MODEL > explicit -c config > user config > built-in fallback
+```
+
+Explicit endpoint key/base settings override generic `OPENAI_*` defaults; CLI flags override endpoint settings. Cross-provider switches cannot silently reuse the previous provider's saved key. Restart the chat after changing settings.
+
+### Custom endpoints
+
+Use `--configure` to save an endpoint. For an endpoint already configured with
+the `openai/` route, you can override its model and URL for a run:
+
+```bash
+sbswe -m 'openai/<model-id>' --base-url http://localhost:8080/v1
+```
+
+Use HTTPS for remote services. HTTP is supported for local servers but does not encrypt credentials.
+
+## Safety and limits
+
+- **Not sandboxed:** shell and file tools can access what your account can access. Child commands inherit environment variables.
+- **Approvals:** interactive actions require approval unless `--yolo` is set. Non-TTY task execution requires explicit `--yolo`.
+- **Cost limits are best-effort:** unknown pricing can report zero. Use provider-side spending limits and finite step limits.
+- **Sensitive output:** terminal output, spooled files and saved trajectories are not automatically redacted. Do not publish them blindly.
+- **Guardrails are narrow:** deny-pattern checks are not protection against arbitrary malicious instructions.
+- **Still deferred:** MCP/ACP integration, richer cancellation, and dedicated prompt-cache controls.
+
+See [SECURITY.md](SECURITY.md) for the security scope and [RELEASE.md](RELEASE.md) for release-validation evidence and limitations.
+
+## Development
+
+```bash
+python -m pip install -e '.[dev]'
+python -m unittest discover -v
+basedpyright -p .
+python -m build
+python -m twine check dist/*.whl dist/*.tar.gz
+```
+
+CI runs tests, typechecking, package builds, metadata checks and a fresh wheel-install smoke check on **Python 3.10 and 3.13**.
+
+```text
+sbswe/
+  agent.py          Agent loop, approvals and compaction
+  cli.py            Interactive chat and CLI options
+  configuration.py  Endpoint setup, key rotation and model picker
+  env.py            Shell execution, cwd tracking and output spooling
+  model.py          LiteLLM adapter and tool schemas
+  tools.py          Built-in file tools
+config/             Example YAML templates
+```
+
+## Releases and naming
+
+Current source uses the **`sbswe`** package and command. The first published `v0.1.0` predates this rename; its original artifacts are preserved. Install current `main` using the instructions above for the renamed command. A newly named release artifact will require a subsequent release.
+
+[Release downloads](https://github.com/R0sso-Corsa/Slightly-Bigger-SWE-Agent/releases) · [Changelog](CHANGELOG.md)
+
+## License and upstream
+
+[MIT](LICENSE). Based on [mini-swe-agent](https://github.com/SWE-agent/mini-swe-agent); the upstream copyright notice is retained. This project is an independent derivative.
